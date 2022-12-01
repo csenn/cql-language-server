@@ -60,6 +60,19 @@ public class FileContentService implements ContentService {
         return uris;
     }
 
+    public static URI findCqlFolderFromRoot (URI root) {
+         Path rootPath = Paths.get(root);
+
+         while (rootPath.getParent() != null) {
+             if (rootPath.getParent().getFileName().equals("cql")) {
+                 return rootPath.getParent().toUri();
+             }
+             rootPath = rootPath.getParent();
+         }
+
+         return null;
+    }
+
     public static File searchFolder(URI directory, VersionedIdentifier libraryIdentifier) {
         Path path;
         try {

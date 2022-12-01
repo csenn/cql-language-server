@@ -107,8 +107,8 @@ public class ServerConfig {
     }
 
     @Bean
-    GoToDefinitionProvider definitionProvider (CqlTranslationManager cqlTranslationManager) {
-        return new GoToDefinitionProvider(cqlTranslationManager);
+    GoToDefinitionProvider definitionProvider (CqlTranslationManager cqlTranslationManager, List<WorkspaceFolder> workspaceFolders) {
+        return new GoToDefinitionProvider(cqlTranslationManager, workspaceFolders);
     }
 
     @Bean

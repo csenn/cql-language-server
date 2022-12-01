@@ -26,9 +26,11 @@ public class GoToDefinitionProvider {
     private static final Logger log = LoggerFactory.getLogger(GoToDefinitionProvider.class);
     private CqlTranslationManager cqlTranslationManager;
 
+    protected final List<WorkspaceFolder> workspaceFolders;
 
-    public GoToDefinitionProvider(CqlTranslationManager cqlTranslationManager) {
+    public GoToDefinitionProvider(CqlTranslationManager cqlTranslationManager, List<WorkspaceFolder> workspaceFolders) {
         this.cqlTranslationManager = cqlTranslationManager;
+        this.workspaceFolders = workspaceFolders;
     }
 
     public Either<List<? extends Location>, List<? extends LocationLink>> getDefinitionLocation(DefinitionParams params) {
@@ -156,7 +158,7 @@ public class GoToDefinitionProvider {
                         .withId(includeDef.getPath())
                         .withVersion(includeDef.getVersion());
 
-                foundFile = FileContentService.searchFolder(cqlDirectory, includeIdentifier);
+                foundFile = this.fileIncludedFile(cqlDirectory, includeIdentifier);
                 break;
             }
         }
@@ -172,6 +174,25 @@ public class GoToDefinitionProvider {
 
         return new ImmutablePair<URI, Library>(foundFile.toURI(), translator.getTranslatedLibrary().getLibrary());
 
+    }
+
+    protected File fileIncludedFile (URI cqlFileUri, VersionedIdentifier includeIdentifier) {
+//        foundFile = FileContentService.searchFolder(cqlDirectory, includeIdentifier);
+
+        for (WorkspaceFolder w : this.workspaceFolders) {
+            URI folderUri = Uris.parseOrNull(w.getUri());
+            // If root is not a is a child of the workspace folder, skip it.
+            if (folderUri == null || folderUri.relativize(cqlFileUri).equals(cqlFileUri)) {
+                continue;
+            }
+
+            File file = FileContentService.searchFolder(folderUri, includeIdentifier);
+            if (file != null && file.exists()) {
+               return file;
+            }
+        }
+
+        return null;
     }
 
     public static boolean areFunctionArgsCompatible(OperandDef functionDefArg, Expression functionRefArg) {
