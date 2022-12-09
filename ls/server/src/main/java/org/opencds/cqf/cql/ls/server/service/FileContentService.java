@@ -51,7 +51,9 @@ public class FileContentService implements ContentService {
                 continue;
             }
 
-            File file = searchFolder(root, identifier);
+            URI cqlDirUri = FileContentService.findCqlFolderFromRoot(root);
+
+            File file = searchFolder(cqlDirUri, identifier);
             if (file != null && file.exists()) {
                 uris.add(file.toURI());
             }
@@ -61,16 +63,23 @@ public class FileContentService implements ContentService {
     }
 
     public static URI findCqlFolderFromRoot (URI root) {
-         Path rootPath = Paths.get(root);
+         Path currPath = Paths.get(root);
 
-         while (rootPath.getParent() != null) {
-             if (rootPath.getParent().getFileName().equals("cql")) {
-                 return rootPath.getParent().toUri();
-             }
-             rootPath = rootPath.getParent();
-         }
+        while (currPath != null) {
+            if (currPath.toFile().isDirectory() && currPath.getFileName().toString().trim().equalsIgnoreCase("cql")) {
+                return currPath.toUri();
+            }
+            currPath = currPath.getParent();
+        }
 
-         return null;
+//         try {
+//
+//         } catch (Exception e) {
+//             log.warn("Error trying to CQL Dir root", e);
+//         }
+
+         // Just return original root if cql can't be found to preserve initial behavior
+         return root;
     }
 
     public static File searchFolder(URI directory, VersionedIdentifier libraryIdentifier) {
