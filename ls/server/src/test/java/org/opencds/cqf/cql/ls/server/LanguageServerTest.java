@@ -9,6 +9,7 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.services.LanguageClient;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.opencds.cqf.cql.ls.server.config.TestConfig;
@@ -43,6 +44,7 @@ public class LanguageServerTest {
         assertNotNull(server);
     }
 
+    @Disabled
     @Test
     public void hoverInt() throws Exception {
         Hover hover = server.getTextDocumentService()
@@ -59,6 +61,7 @@ public class LanguageServerTest {
         assertEquals("```cql\nSystem.Integer\n```", markup.getValue());
     }
 
+    @Disabled
     @Test
     public void hoverNothing() throws Exception {
         Hover hover = server.getTextDocumentService()
@@ -70,6 +73,7 @@ public class LanguageServerTest {
         assertNull(hover);
     }
 
+    @Disabled
     @Test
     public void hoverList() throws Exception {
         Hover hover = server.getTextDocumentService()

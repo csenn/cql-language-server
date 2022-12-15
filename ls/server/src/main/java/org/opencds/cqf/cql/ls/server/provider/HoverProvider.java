@@ -10,10 +10,13 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.hl7.cql.model.DataType;
+import org.hl7.elm.r1.Element;
 import org.hl7.elm.r1.ExpressionDef;
+import org.hl7.elm.r1.Library;
 import org.hl7.elm.r1.Library.Statements;
 import org.opencds.cqf.cql.ls.core.utility.Uris;
 import org.opencds.cqf.cql.ls.server.manager.CqlTranslationManager;
+import org.opencds.cqf.cql.ls.server.utility.CursorOverlappingElements;
 
 public class HoverProvider {
     private CqlTranslationManager cqlTranslationManager;
@@ -51,19 +54,62 @@ public class HoverProvider {
         // less user friendly)
         //
         // The current code always picks the first ExpressionDef in the graph.
-        Pair<Range, ExpressionDef> exp = getExpressionDefForPosition(position.getPosition(),
-                translator.getTranslatedLibrary().getLibrary().getStatements());
 
-        if (exp == null) {
-            return null;
+        // Cql handles position indexes different then VsCode
+        Position initialPosition = position.getPosition();
+        Position cqlPosition = new Position(initialPosition.getLine() + 1, initialPosition.getCharacter() + 1);
+
+
+        Library library = translator.getTranslatedLibrary().getLibrary();
+        Element specificElement = CursorOverlappingElements.getMostSpecificElementAtPosition(cqlPosition, library);
+
+        Range targetRange = GoToDefinitionProvider.getRangeOfElement(specificElement);
+
+
+//        createMarkup
+
+        MarkupContent markup = createMarkup(specificElement);
+        return new Hover(markup, targetRange);
+
+//        Pair<Range, ExpressionDef> exp = getExpressionDefForPosition(position.getPosition(),
+//                translator.getTranslatedLibrary().getLibrary().getStatements());
+
+//        if (exp == null) {
+//            return null;
+//        }
+//
+
+//        if (markup == null) {
+//            return null;
+//        }
+//
+//        return new Hover(markup, exp.getLeft());
+    }
+
+    public MarkupContent createMarkup(Element element) {
+
+        String content = "ELM: " + element.getClass().getSimpleName() + "\n\n";
+
+//        content += e
+
+
+
+//        if (def == null || def.getExpression() == null) {
+//            return null;
+//        }
+//
+        DataType resultType = element.getResultType();
+        if (resultType != null) {
+//            return null;
+            content += "Result Type:\n";
+            content += String.join("\n", "```cql", resultType.toString(), "```");
+
         }
 
-        MarkupContent markup = markup(exp.getRight());
-        if (markup == null) {
-            return null;
-        }
+        // Specifying the Markdown type as cql allows the client to apply
+        // cql syntax highlighting the resulting pop-up
 
-        return new Hover(markup, exp.getLeft());
+        return new MarkupContent("markdown", content);
     }
 
     private Pair<Range, ExpressionDef> getExpressionDefForPosition(Position position,
