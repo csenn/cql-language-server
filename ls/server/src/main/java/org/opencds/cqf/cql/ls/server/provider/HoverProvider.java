@@ -17,9 +17,13 @@ import org.hl7.elm.r1.Library.Statements;
 import org.opencds.cqf.cql.ls.core.utility.Uris;
 import org.opencds.cqf.cql.ls.server.manager.CqlTranslationManager;
 import org.opencds.cqf.cql.ls.server.utility.CursorOverlappingElements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HoverProvider {
     private CqlTranslationManager cqlTranslationManager;
+
+    private static final Logger log = LoggerFactory.getLogger(HoverProvider.class);
 
     public HoverProvider(CqlTranslationManager cqlTranslationManager) {
         this.cqlTranslationManager = cqlTranslationManager;
@@ -62,14 +66,23 @@ public class HoverProvider {
 
         Library library = translator.getTranslatedLibrary().getLibrary();
         Element specificElement = CursorOverlappingElements.getMostSpecificElementAtPosition(cqlPosition, library);
+        if (specificElement == null) {
+            return null;
+        }
 
         Range targetRange = GoToDefinitionProvider.getRangeOfElement(specificElement);
+        if (targetRange == null) {
+            return null;
+        }
 
+        try {
+            MarkupContent markup = createMarkup(specificElement);
+            return new Hover(markup, targetRange);
+        } catch (Exception e) {
+            log.error("Unable to create markup for element", e);
+            return null;
+        }
 
-//        createMarkup
-
-        MarkupContent markup = createMarkup(specificElement);
-        return new Hover(markup, targetRange);
 
 //        Pair<Range, ExpressionDef> exp = getExpressionDefForPosition(position.getPosition(),
 //                translator.getTranslatedLibrary().getLibrary().getStatements());

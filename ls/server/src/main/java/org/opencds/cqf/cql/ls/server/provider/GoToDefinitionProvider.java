@@ -56,9 +56,11 @@ public class GoToDefinitionProvider {
         Library library = translator.getTranslatedLibrary().getLibrary();
         Element specificElement = CursorOverlappingElements.getMostSpecificElementAtPosition(cqlPosition, library);
 
-        LocationLink locationLink = this.getLocationLinkOfElement(specificElement, library, uri);
-        if (locationLink != null) {
-            locations.add(locationLink);
+        if (specificElement != null) {
+            LocationLink locationLink = this.getLocationLinkOfElement(specificElement, library, uri);
+            if (locationLink != null) {
+                locations.add(locationLink);
+            }
         }
 
         return Either.forRight(locations);
@@ -108,6 +110,9 @@ public class GoToDefinitionProvider {
     protected static LocationLink getLocationLinkForExpressionDef(ExpressionDef foundExpressionDef, URI libraryUri, Element selectionElement) {
         Range targetRange = GoToDefinitionProvider.getRangeOfElement(foundExpressionDef);
         Range originSelectionRange = GoToDefinitionProvider.getRangeOfElement(selectionElement);
+        if (targetRange == null || originSelectionRange == null) {
+            return null;
+        }
         return new LocationLink(libraryUri.toString(), targetRange, targetRange, originSelectionRange);
     }
 
@@ -225,7 +230,7 @@ public class GoToDefinitionProvider {
 
 
     public static Range getRangeOfElement(Element element) {
-        if (element.getTrackbacks().size() == 0) {
+        if (element == null || element.getTrackbacks() == null || element.getTrackbacks().size() == 0) {
             return null;
         }
         TrackBack trackBack = element.getTrackbacks().get(0);
